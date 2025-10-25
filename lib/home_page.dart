@@ -62,6 +62,7 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: const Text("DoctorAppointmentApp"),
+        automaticallyImplyLeading: false,
         backgroundColor: Colors.blue[700],
         elevation: 0,
       ),
@@ -126,7 +127,6 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                   const SizedBox(width: 16),
-
                   // Los consejos médicos
                   Expanded(
                     child: GestureDetector(
@@ -165,7 +165,6 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
               const SizedBox(height: 32),
-
               // La sección de especialistas
               const Text(
                 "Especialistas",
@@ -175,7 +174,6 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               const SizedBox(height: 16),
-
               // La lista de especialistas
               _buildSpecialistCard(
                 "Cardiología",
@@ -207,9 +205,7 @@ class _HomePageState extends State<HomePage> {
                 Icons.healing,
                 Colors.blue,
               ),
-
               const SizedBox(height: 32),
-
               const Text(
                 "Médicos Populares",
                 style: TextStyle(
@@ -234,7 +230,6 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
       ),
-
       // La barra de navegación inferior
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
@@ -256,7 +251,6 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-
   //Este es el widget para crear las tarjetas de los especialistas
   Widget _buildSpecialistCard(String title, String subtitle, IconData icon, Color color) {
     return Card(
@@ -282,7 +276,6 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-
   // Este es el widget para poder crear las tarjetas de los doctores populares
   Widget _buildDoctorCard(String name, String specialty, String rating, IconData icon) {
     return Card(
