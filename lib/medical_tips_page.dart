@@ -123,20 +123,6 @@ class MedicalTipsPage extends StatelessWidget {
 
           const SizedBox(height: 24),
 
-          Center(
-            child: ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 16),
-              ),
-              child: const Text(
-                "Volver",
-                style: TextStyle(fontSize: 16),
-              ),
-            ),
-          ),
         ],
       ),
     );
