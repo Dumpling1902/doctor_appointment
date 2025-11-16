@@ -19,6 +19,7 @@ class _ProfilePageState extends State<ProfilePage> {
   final TextEditingController lugarNacimientoController = TextEditingController();
   final TextEditingController padecimientosController = TextEditingController();
 
+  String rolSeleccionado = 'Paciente'; // Valor por defecto
   bool _loading = false;
 
   @override
@@ -39,6 +40,9 @@ class _ProfilePageState extends State<ProfilePage> {
       edadController.text = data['edad'] ?? '';
       lugarNacimientoController.text = data['lugarNacimiento'] ?? '';
       padecimientosController.text = data['padecimientos'] ?? '';
+      setState(() {
+        rolSeleccionado = data['rol'] ?? 'Paciente';
+      });
     }
   }
 
@@ -54,6 +58,7 @@ class _ProfilePageState extends State<ProfilePage> {
       'edad': edadController.text.trim(),
       'lugarNacimiento': lugarNacimientoController.text.trim(),
       'padecimientos': padecimientosController.text.trim(),
+      'rol': rolSeleccionado, // Guardar el rol
       'email': user.email,
       'uid': user.uid,
     });
@@ -89,8 +94,10 @@ class _ProfilePageState extends State<ProfilePage> {
                         CircleAvatar(
                           radius: 50,
                           backgroundColor: Colors.blue[700],
-                          child: const Icon(
-                            Icons.person,
+                          child: Icon(
+                            rolSeleccionado == 'Médico' 
+                              ? Icons.medical_services 
+                              : Icons.person,
                             size: 60,
                             color: Colors.white,
                           ),
@@ -101,6 +108,28 @@ class _ProfilePageState extends State<ProfilePage> {
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: rolSeleccionado == 'Médico' 
+                              ? Colors.blue[100] 
+                              : Colors.green[100],
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            rolSeleccionado,
+                            style: TextStyle(
+                              color: rolSeleccionado == 'Médico' 
+                                ? Colors.blue[900] 
+                                : Colors.green[900],
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ],
@@ -115,6 +144,41 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                   ),
                   const SizedBox(height: 16),
+                  
+                  // Dropdown para seleccionar el rol
+                  Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: DropdownButtonFormField<String>(
+                      value: rolSeleccionado,
+                      decoration: const InputDecoration(
+                        labelText: "Rol",
+                        prefixIcon: Icon(Icons.badge),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                      ),
+                      items: ['Paciente', 'Médico'].map((String rol) {
+                        return DropdownMenuItem<String>(
+                          value: rol,
+                          child: Text(rol),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        if (newValue != null) {
+                          setState(() {
+                            rolSeleccionado = newValue;
+                          });
+                        }
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  
                   // Para colocar el nombre
                   TextField(
                     controller: nombreController,

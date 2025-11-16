@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'routes.dart';
 
 class LoginPage extends StatefulWidget {
@@ -44,14 +45,6 @@ class _LoginPageState extends State<LoginPage> {
                     color: Colors.white,
                   ),
                 ),
-                const SizedBox(height: 8),
-                const Text(
-                  "Tu salud, nuestra prioridad",
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.white70,
-                  ),
-                ),
                 const SizedBox(height: 40),
                 Card(
                   elevation: 8,
@@ -72,7 +65,6 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           ),
                           const SizedBox(height: 24),
-                          // Correo electrónico
                           TextFormField(
                             controller: emailController,
                             decoration: InputDecoration(
@@ -93,7 +85,6 @@ class _LoginPageState extends State<LoginPage> {
                             },
                           ),
                           const SizedBox(height: 16),
-                          // Campo de contraseña
                           TextFormField(
                             controller: passwordController,
                             decoration: InputDecoration(
@@ -114,7 +105,6 @@ class _LoginPageState extends State<LoginPage> {
                             },
                           ),
                           const SizedBox(height: 24),
-                          // Botón de iniciar sesión
                           SizedBox(
                             width: double.infinity,
                             height: 50,
@@ -127,9 +117,7 @@ class _LoginPageState extends State<LoginPage> {
                                 ),
                               ),
                               child: _isLoading
-                                  ? const CircularProgressIndicator(
-                                      color: Colors.white,
-                                    )
+                                  ? const CircularProgressIndicator(color: Colors.white)
                                   : const Text(
                                       "Iniciar Sesión",
                                       style: TextStyle(
@@ -142,14 +130,6 @@ class _LoginPageState extends State<LoginPage> {
                         ],
                       ),
                     ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  "¿Olvidaste tu contraseña?",
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14,
                   ),
                 ),
               ],
@@ -165,37 +145,36 @@ class _LoginPageState extends State<LoginPage> {
       setState(() => _isLoading = true);
 
       try {
-        UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+        UserCredential userCredential =
+            await _auth.signInWithEmailAndPassword(
           email: emailController.text.trim(),
           password: passwordController.text.trim(),
         );
-        
+
+        final doc = await FirebaseFirestore.instance
+            .collection('usuarios')
+            .doc(userCredential.user!.uid)
+            .get();
+
+        final role = doc.data()?['rol'] ?? 'Paciente';
+
         if (!mounted) return;
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("Bienvenido ${userCredential.user!.email}"),
             backgroundColor: Colors.green,
           ),
         );
-        
-        Navigator.pushReplacementNamed(context, Routes.home);
-      } on FirebaseAuthException catch (e) {
-        String message = "";
-        if (e.code == 'user-not-found') {
-          message = "Usuario no encontrado.";
-        } else if (e.code == 'wrong-password') {
-          message = "Contraseña incorrecta.";
-        } else if (e.code == 'invalid-email') {
-          message = "Correo electrónico inválido.";
-        } else if (e.code == 'invalid-credential') {
-          message = "Credenciales inválidas.";
+
+        if (role == 'Médico') {
+          Navigator.pushReplacementNamed(context, Routes.dashboard);
         } else {
-          message = "Error: ${e.message}";
+          Navigator.pushReplacementNamed(context, Routes.home);
         }
-        
+      } on FirebaseAuthException catch (e) {
+        String message = e.message ?? "Error al iniciar sesión";
         if (!mounted) return;
-        
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(message),
@@ -203,9 +182,7 @@ class _LoginPageState extends State<LoginPage> {
           ),
         );
       } finally {
-        if (mounted) {
-          setState(() => _isLoading = false);
-        }
+        if (mounted) setState(() => _isLoading = false);
       }
     }
   }
