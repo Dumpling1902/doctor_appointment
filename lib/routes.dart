@@ -8,7 +8,8 @@ import 'privacy_page.dart';
 import 'about_page.dart';
 import 'schedule_appointment_page.dart';
 import 'medical_tips_page.dart';
-import 'dashboard_page.dart'; // Nueva página
+import 'dashboard_page.dart'; 
+import 'graphics_page.dart';
 
 class Routes {
   static const String login = '/login';
@@ -20,7 +21,8 @@ class Routes {
   static const String about = '/about';
   static const String scheduleAppointment = '/schedule-appointment';
   static const String medicalTips = '/medical-tips';
-  static const String dashboard = '/dashboard'; // Nueva ruta
+  static const String dashboard = '/dashboard';
+  static const String graphics = '/graphics';
 
   static Route<dynamic> generateRoute(RouteSettings routeSettings) {
     switch (routeSettings.name) {
@@ -44,6 +46,8 @@ class Routes {
         return MaterialPageRoute(builder: (_) => const MedicalTipsPage());
       case dashboard:
         return MaterialPageRoute(builder: (_) => const DashboardPage());
+      case graphics:
+        return MaterialPageRoute(builder: (_) => const GraphicsPage());
       default:
         return MaterialPageRoute(
           builder: (_) => Scaffold(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'routes.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
@@ -75,14 +76,6 @@ class DashboardPage extends StatelessWidget {
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                "Bienvenido Dr. ${auth.currentUser?.email?.split('@')[0] ?? 'Doctor'}",
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.white70,
                                 ),
                               ),
                             ],
@@ -195,6 +188,14 @@ class DashboardPage extends StatelessWidget {
             );
           },
         ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.pushNamed(context, Routes.graphics);
+        },
+        backgroundColor: Colors.blue[700],
+        icon: const Icon(Icons.bar_chart),
+        label: const Text("Gráficas"),
       ),
     );
   }

@@ -14,6 +14,7 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController passwordController = TextEditingController();
   final FirebaseAuth _auth = FirebaseAuth.instance;
   bool _isLoading = false;
+  String rolSeleccionado = 'Paciente';
 
   @override
   Widget build(BuildContext context) {
@@ -104,6 +105,39 @@ class _LoginPageState extends State<LoginPage> {
                               return null;
                             },
                           ),
+                          const SizedBox(height: 16),
+                          Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey.shade300),
+                              borderRadius: BorderRadius.circular(12),
+                              color: Colors.grey[50],
+                            ),
+                            child: DropdownButtonFormField<String>(
+                              value: rolSeleccionado,
+                              decoration: const InputDecoration(
+                                labelText: "Rol",
+                                prefixIcon: Icon(Icons.badge),
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
+                              ),
+                              items: ['Paciente', 'Médico'].map((String rol) {
+                                return DropdownMenuItem<String>(
+                                  value: rol,
+                                  child: Text(rol),
+                                );
+                              }).toList(),
+                              onChanged: (String? newValue) {
+                                if (newValue != null) {
+                                  setState(() {
+                                    rolSeleccionado = newValue;
+                                  });
+                                }
+                              },
+                            ),
+                          ),
                           const SizedBox(height: 24),
                           SizedBox(
                             width: double.infinity,
@@ -156,7 +190,20 @@ class _LoginPageState extends State<LoginPage> {
             .doc(userCredential.user!.uid)
             .get();
 
-        final role = doc.data()?['rol'] ?? 'Paciente';
+        String role;
+        if (!doc.exists || doc.data()?['rol'] == null) {
+          await FirebaseFirestore.instance
+              .collection('usuarios')
+              .doc(userCredential.user!.uid)
+              .set({
+            'rol': rolSeleccionado,
+            'email': userCredential.user!.email,
+            'uid': userCredential.user!.uid,
+          }, SetOptions(merge: true));
+          role = rolSeleccionado;
+        } else {
+          role = doc.data()!['rol'];
+        }
 
         if (!mounted) return;
 
@@ -167,11 +214,7 @@ class _LoginPageState extends State<LoginPage> {
           ),
         );
 
-        if (role == 'Médico') {
-          Navigator.pushReplacementNamed(context, Routes.dashboard);
-        } else {
-          Navigator.pushReplacementNamed(context, Routes.home);
-        }
+        Navigator.pushReplacementNamed(context, Routes.home);
       } on FirebaseAuthException catch (e) {
         String message = e.message ?? "Error al iniciar sesión";
         if (!mounted) return;
