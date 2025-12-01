@@ -71,15 +71,6 @@ class PrivacyPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
-            
-            Center(
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: const Text("Volver"),
-              ),
-            ),
           ],
         ),
       ),

@@ -3,17 +3,19 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'routes.dart';
 
-class LoginPage extends StatefulWidget {
+class RegisterPage extends StatefulWidget {
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final TextEditingController confirmPasswordController = TextEditingController();
   final FirebaseAuth _auth = FirebaseAuth.instance;
   bool _isLoading = false;
+  String rolSeleccionado = 'Paciente';
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +60,7 @@ class _LoginPageState extends State<LoginPage> {
                       child: Column(
                         children: [
                           const Text(
-                            "Iniciar Sesión",
+                            "Crear Cuenta",
                             style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
@@ -81,6 +83,9 @@ class _LoginPageState extends State<LoginPage> {
                               if (value == null || value.isEmpty) {
                                 return "Por favor ingresa tu correo";
                               }
+                              if (!value.contains('@')) {
+                                return "Por favor ingresa un correo válido";
+                              }
                               return null;
                             },
                           ),
@@ -101,15 +106,74 @@ class _LoginPageState extends State<LoginPage> {
                               if (value == null || value.isEmpty) {
                                 return "Por favor ingresa tu contraseña";
                               }
+                              if (value.length < 6) {
+                                return "La contraseña debe tener al menos 6 caracteres";
+                              }
                               return null;
                             },
+                          ),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: confirmPasswordController,
+                            decoration: InputDecoration(
+                              labelText: "Confirmar Contraseña",
+                              prefixIcon: const Icon(Icons.lock_outline),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              filled: true,
+                              fillColor: Colors.grey[50],
+                            ),
+                            obscureText: true,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return "Por favor confirma tu contraseña";
+                              }
+                              if (value != passwordController.text) {
+                                return "Las contraseñas no coinciden";
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey.shade300),
+                              borderRadius: BorderRadius.circular(12),
+                              color: Colors.grey[50],
+                            ),
+                            child: DropdownButtonFormField<String>(
+                              value: rolSeleccionado,
+                              decoration: const InputDecoration(
+                                labelText: "Rol",
+                                prefixIcon: Icon(Icons.badge),
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
+                              ),
+                              items: ['Paciente', 'Médico'].map((String rol) {
+                                return DropdownMenuItem<String>(
+                                  value: rol,
+                                  child: Text(rol),
+                                );
+                              }).toList(),
+                              onChanged: (String? newValue) {
+                                if (newValue != null) {
+                                  setState(() {
+                                    rolSeleccionado = newValue;
+                                  });
+                                }
+                              },
+                            ),
                           ),
                           const SizedBox(height: 24),
                           SizedBox(
                             width: double.infinity,
                             height: 50,
                             child: ElevatedButton(
-                              onPressed: _isLoading ? null : _handleLogin,
+                              onPressed: _isLoading ? null : _handleRegister,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.blue[700],
                                 shape: RoundedRectangleBorder(
@@ -119,7 +183,7 @@ class _LoginPageState extends State<LoginPage> {
                               child: _isLoading
                                   ? const CircularProgressIndicator(color: Colors.white)
                                   : const Text(
-                                      "Iniciar Sesión",
+                                      "Registrarse",
                                       style: TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,
@@ -130,10 +194,10 @@ class _LoginPageState extends State<LoginPage> {
                           const SizedBox(height: 16),
                           TextButton(
                             onPressed: () {
-                              Navigator.pushReplacementNamed(context, Routes.register);
+                              Navigator.pushReplacementNamed(context, Routes.login);
                             },
                             child: const Text(
-                              "¿No tienes cuenta? Regístrate",
+                              "¿Ya tienes cuenta? Inicia Sesión",
                               style: TextStyle(
                                 fontSize: 16,
                                 color: Colors.blue,
@@ -153,51 +217,65 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Future<void> _handleLogin() async {
+  Future<void> _handleRegister() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
 
       try {
         UserCredential userCredential =
-            await _auth.signInWithEmailAndPassword(
+            await _auth.createUserWithEmailAndPassword(
           email: emailController.text.trim(),
           password: passwordController.text.trim(),
         );
 
-        final doc = await FirebaseFirestore.instance
+        await FirebaseFirestore.instance
             .collection('usuarios')
             .doc(userCredential.user!.uid)
-            .get();
-
-        if (!doc.exists || doc.data()?['rol'] == null) {
-          await _auth.signOut();
-          if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text("Usuario no encontrado. Por favor regístrate."),
-              backgroundColor: Colors.orange,
-            ),
-          );
-          setState(() => _isLoading = false);
-          return;
-        }
+            .set({
+          'rol': rolSeleccionado,
+          'email': userCredential.user!.email,
+          'uid': userCredential.user!.uid,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
 
         if (!mounted) return;
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("Bienvenido ${userCredential.user!.email}"),
+            content: Text("Cuenta creada exitosamente como $rolSeleccionado"),
             backgroundColor: Colors.green,
           ),
         );
 
         Navigator.pushReplacementNamed(context, Routes.home);
       } on FirebaseAuthException catch (e) {
-        String message = e.message ?? "Error al iniciar sesión";
+        String message;
+        switch (e.code) {
+          case 'email-already-in-use':
+            message = "Este correo ya está registrado";
+            break;
+          case 'invalid-email':
+            message = "Correo electrónico inválido";
+            break;
+          case 'weak-password':
+            message = "La contraseña es muy débil";
+            break;
+          default:
+            message = e.message ?? "Error al crear la cuenta";
+        }
+        
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(message),
+            backgroundColor: Colors.red,
+          ),
+        );
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Error inesperado: ${e.toString()}"),
             backgroundColor: Colors.red,
           ),
         );
@@ -211,6 +289,7 @@ class _LoginPageState extends State<LoginPage> {
   void dispose() {
     emailController.dispose();
     passwordController.dispose();
+    confirmPasswordController.dispose();
     super.dispose();
   }
 }

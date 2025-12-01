@@ -19,7 +19,7 @@ class _ProfilePageState extends State<ProfilePage> {
   final TextEditingController lugarNacimientoController = TextEditingController();
   final TextEditingController padecimientosController = TextEditingController();
 
-  String rolSeleccionado = 'Paciente'; // Valor por defecto
+  String rolSeleccionado = 'Paciente'; 
   bool _loading = false;
 
   @override
@@ -28,7 +28,6 @@ class _ProfilePageState extends State<ProfilePage> {
     _loadUserData();
   }
 
-  // Cargar datos del usuario
   Future<void> _loadUserData() async {
     final user = _auth.currentUser;
     if (user == null) return;
@@ -46,22 +45,26 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  // Guardar datos del usuario 
   Future<void> _saveUserData() async {
     final user = _auth.currentUser;
     if (user == null) return;
 
     setState(() => _loading = true);
 
-    await _firestore.collection('usuarios').doc(user.uid).set({
+    final Map<String, dynamic> userData = {
       'nombre': nombreController.text.trim(),
       'edad': edadController.text.trim(),
       'lugarNacimiento': lugarNacimientoController.text.trim(),
-      'padecimientos': padecimientosController.text.trim(),
-      'rol': rolSeleccionado, // Guardar el rol
+      'rol': rolSeleccionado,
       'email': user.email,
       'uid': user.uid,
-    });
+    };
+
+    if (rolSeleccionado == 'Paciente') {
+      userData['padecimientos'] = padecimientosController.text.trim();
+    }
+
+    await _firestore.collection('usuarios').doc(user.uid).set(userData);
 
     setState(() => _loading = false);
 
@@ -87,7 +90,6 @@ class _ProfilePageState extends State<ProfilePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Información del correo
                   Center(
                     child: Column(
                       children: [
@@ -145,7 +147,6 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                   const SizedBox(height: 16),
                   
-                  // Dropdown para seleccionar el rol
                   Container(
                     decoration: BoxDecoration(
                       border: Border.all(color: Colors.grey),
@@ -179,7 +180,6 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                   const SizedBox(height: 16),
                   
-                  // Para colocar el nombre
                   TextField(
                     controller: nombreController,
                     decoration: const InputDecoration(
@@ -189,7 +189,6 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  // Para colocar la edad
                   TextField(
                     controller: edadController,
                     decoration: const InputDecoration(
@@ -200,7 +199,6 @@ class _ProfilePageState extends State<ProfilePage> {
                     keyboardType: TextInputType.number,
                   ),
                   const SizedBox(height: 16),
-                  // Para colocar el lugar de nacimiento
                   TextField(
                     controller: lugarNacimientoController,
                     decoration: const InputDecoration(
@@ -210,19 +208,21 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  // Para colocar los padecimientos
-                  TextField(
-                    controller: padecimientosController,
-                    decoration: const InputDecoration(
-                      labelText: "Padecimientos",
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.medical_information),
-                      helperText: "Describe tus condiciones médicas o enfermedades",
+                  if (rolSeleccionado == 'Paciente') ...[
+                    TextField(
+                      controller: padecimientosController,
+                      decoration: const InputDecoration(
+                        labelText: "Padecimientos",
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.medical_information),
+                        helperText: "Describe tus condiciones médicas o enfermedades",
+                      ),
+                      maxLines: 4,
                     ),
-                    maxLines: 4,
-                  ),
-                  const SizedBox(height: 24),
-                  // Botón para guardar
+                    const SizedBox(height: 24),
+                  ] else ...[
+                    const SizedBox(height: 8),
+                  ],
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -238,22 +238,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  // Botón para volver
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                      child: const Text(
-                        "Volver",
-                        style: TextStyle(fontSize: 16),
-                      ),
-                    ),
-                  ),
+                  
                 ],
               ),
             ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'home_page.dart';
 import 'profile_page.dart';
 import 'login_page.dart';
+import 'register_page.dart';
 import 'messages_page.dart';
 import 'settings_page.dart';
 import 'privacy_page.dart';
@@ -13,6 +14,7 @@ import 'graphics_page.dart';
 
 class Routes {
   static const String login = '/login';
+  static const String register = '/register';
   static const String home = '/home';
   static const String profile = '/profile';
   static const String messages = '/messages';
@@ -28,6 +30,8 @@ class Routes {
     switch (routeSettings.name) {
       case login:
         return MaterialPageRoute(builder: (_) => LoginPage());
+      case register:
+        return MaterialPageRoute(builder: (_) => RegisterPage());
       case home:
         return MaterialPageRoute(builder: (_) => const HomePage());
       case profile:
