@@ -17,6 +17,7 @@ class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
   String userName = "Usuario";
   String userRole = "Paciente";
+  String? userId;
 
   @override
   void initState() {
@@ -27,6 +28,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _loadUserData() async {
     final user = _auth.currentUser;
     if (user == null) return;
+    userId = user.uid;
 
     final doc = await _firestore.collection('usuarios').doc(user.uid).get();
     if (doc.exists) {
@@ -96,7 +98,11 @@ class _HomePageState extends State<HomePage> {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final citas = citasSnapshot.data!.docs;
+        final todasLasCitas = citasSnapshot.data!.docs;
+        final citas = todasLasCitas.where((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          return data['doctorId'] == userId;
+        }).toList();
         final totalCitas = citas.length;
 
         final ahora = DateTime.now();

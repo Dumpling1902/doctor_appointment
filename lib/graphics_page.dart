@@ -1,9 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
 
-class GraphicsPage extends StatelessWidget {
-  const GraphicsPage({super.key});
+class GraphicsPage extends StatefulWidget {
+    const GraphicsPage({super.key});
+
+    @override
+    State<GraphicsPage> createState() => _GraphicsPageState();
+  }
+
+  class _GraphicsPageState extends State<GraphicsPage> {
+    String? userId;
+
+    @override
+    void initState() {
+      super.initState();
+      _loadUserId();
+    }
+
+    Future<void> _loadUserId() async {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        setState(() {
+          userId = user.uid;
+        });
+      }
+    }
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +42,11 @@ class GraphicsPage extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final citas = snapshot.data!.docs;
+          final todasLasCitas = snapshot.data!.docs;
+          final citas = todasLasCitas.where((doc) {
+            final data = doc.data() as Map<String, dynamic>;
+            return data['doctorId'] == userId;
+          }).toList();
           final citasPorMes = _processCitasPorMes(citas);
           final citasStatus = _processCitasStatus(citas);
 
